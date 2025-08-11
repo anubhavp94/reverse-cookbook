@@ -1,12 +1,14 @@
+import dotenv from 'dotenv';
+
+// Load environment variables first, before any other imports
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import dotenv from 'dotenv';
 import { errorHandler } from './middleware/errorHandler';
 import { recipeRoutes } from './routes/recipeRoutes';
 import { ingredientRoutes } from './routes/ingredientRoutes';
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;

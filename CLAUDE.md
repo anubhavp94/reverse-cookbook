@@ -8,14 +8,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Reverse Cookbook** is an AI-powered web application that generates recipe recommendations based on available ingredients and preferred cuisine types. Users input their ingredients, select a cuisine, and receive personalized recipe suggestions powered by open-source LLM models.
+**Reverse Cookbook** is an AI-powered web application that generates recipe recommendations based on available ingredients and preferred cuisine types. Users input their ingredients, select a cuisine, and receive personalized recipe suggestions powered by Google Gemini AI.
 
 ## Technology Stack
 
 - **Frontend**: React 18 + TypeScript + Tailwind CSS + Headless UI
 - **Backend**: Node.js + Express + TypeScript + SQLite
-- **AI**: Ollama + Llama 3.1 8B model (local inference)
-- **Deployment**: Docker + Docker Compose
+- **AI**: Google Gemini API (Gemini 1.5 Flash model)
+- **Deployment**: Docker + Docker Compose (Optional - runs locally without Docker)
 - **Architecture**: Monorepo with shared TypeScript types
 
 ## Project Structure
@@ -45,7 +45,20 @@ reverse-cookbook/
 
 ## Development Commands
 
-### Quick Start (Docker - Recommended)
+### Local Development (Recommended)
+```bash
+# Terminal 1 - Backend
+cd backend
+npm install
+npm run dev                 # Backend runs on http://localhost:3001
+
+# Terminal 2 - Frontend  
+cd frontend
+npm install
+npm start                   # Frontend runs on http://localhost:3000
+```
+
+### Docker (Optional)
 ```bash
 docker-compose up -d        # Start all services
 docker-compose ps           # Check service status
@@ -53,12 +66,9 @@ docker-compose logs -f      # View logs
 docker-compose down         # Stop all services
 ```
 
-### Local Development
+### Root Level Commands
 ```bash
-npm install                 # Install dependencies
-npm run dev                 # Start both frontend and backend
-npm run dev:frontend        # Frontend only (React dev server)
-npm run dev:backend         # Backend only (Express with nodemon)
+npm install                 # Install all dependencies
 npm run build              # Build all packages for production
 ```
 
@@ -94,9 +104,10 @@ cd frontend && npm start    # Frontend development
 ```env
 NODE_ENV=development
 PORT=3001
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_MODEL=llama3.1:8b
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_MODEL=gemini-1.5-flash
 DB_PATH=./recipes.db
+API_RATE_LIMIT=100
 ```
 
 **Frontend (.env)**:
@@ -104,11 +115,23 @@ DB_PATH=./recipes.db
 REACT_APP_API_URL=http://localhost:3001/api
 ```
 
+**Docker Compose (.env)**:
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+### Gemini API Key Setup
+
+1. Visit [Google AI Studio](https://aistudio.google.com)
+2. Sign in with your Google account
+3. Click "Get API key" in the left sidebar
+4. Copy your API key and add it to the .env files above
+
 ## Key Features Implemented
 
 1. **Ingredient Selector**: Multi-select component with search (34+ ingredients)
 2. **Cuisine Selection**: Dropdown with 12+ international cuisines
-3. **AI Recipe Generation**: Ollama integration for recipe creation
+3. **AI Recipe Generation**: Google Gemini API integration for fast recipe creation
 4. **Recipe Display**: Modal with ingredients, instructions, cooking time
 5. **Database Caching**: SQLite with intelligent recipe caching
 6. **Responsive Design**: Mobile-first Tailwind CSS implementation
@@ -120,7 +143,7 @@ REACT_APP_API_URL=http://localhost:3001/api
 - **Shared Types**: Common interfaces prevent type mismatches
 - **Error Boundaries**: Proper error handling and user feedback
 - **Caching Strategy**: Ingredient-based recipe caching for performance
-- **Container Architecture**: Multi-service Docker setup with health checks
+- **Flexible Architecture**: Docker support optional, works locally without containers
 
 ## Testing & Validation
 
@@ -136,23 +159,23 @@ curl -X POST http://localhost:3001/api/recipes/generate \
 ### Service URLs
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:3001
-- Ollama AI: http://localhost:11434
+- Gemini AI: Cloud-based (no local setup required)
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Recipe generation slow/failing**: AI model still downloading (~4.9GB)
-2. **Port conflicts**: Stop local services on ports 3000/3001/11434
-3. **Docker build fails**: Ensure sufficient disk space for images
+1. **Recipe generation failing**: Invalid Gemini API key - get a valid key from [Google AI Studio](https://aistudio.google.com)
+2. **Port conflicts**: Stop local services on ports 3000/3001
+3. **Environment variables not loading**: Ensure .env files exist in backend/ directory
 4. **TypeScript errors**: Run `npm run build` in shared package first
 
 ### Performance Notes
 
-- First recipe generation: 20-60 seconds (model cold start)
-- Subsequent generations: 5-15 seconds (warm model)
-- Cached recipes: <1 second response
-- Model download time: 5-20 minutes (first run only)
+- Recipe generation: 1-3 seconds (cloud-based Gemini API)
+- Cached recipes: <1 second response  
+- No model downloads required (cloud-hosted)
+- Gemini Free Tier: 15 RPM, 1M tokens/min, 1,500 requests/day
 
 ## Development Patterns
 
@@ -165,10 +188,24 @@ curl -X POST http://localhost:3001/api/recipes/generate \
 ## Deployment
 
 The application is production-ready with:
+- **Local Development**: Simple `npm run dev` setup, no Docker required
+- **Docker Support**: Optional containerization for production deployments
 - Multi-stage Docker builds for optimization
 - Nginx configuration for frontend serving
 - Health checks for all services
-- Persistent volumes for AI models and database
+- Persistent volumes for database storage
 - Security headers and CORS configuration
+- Cloud-based AI (no model hosting required)
 
-Run `docker-compose up -d` for complete deployment.
+### Quick Start Options:
+
+**Local (Recommended for Development):**
+```bash
+# Backend: cd backend && npm run dev
+# Frontend: cd frontend && npm start
+```
+
+**Docker (Optional):**
+```bash
+docker-compose up -d
+```

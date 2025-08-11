@@ -1,24 +1,24 @@
-import axios from 'axios';
+import { GoogleGenAI } from '@google/genai';
 import { Recipe, RecipeRequest } from '@reverse-cookbook/shared';
 
-export interface OllamaResponse {
-  response: string;
-  done: boolean;
-}
-
 export class AIService {
-  private baseUrl: string;
+  private genAI: GoogleGenAI;
   private model: string;
 
   constructor() {
-    this.baseUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
-    this.model = process.env.OLLAMA_MODEL || 'llama3.1:8b';
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error('GEMINI_API_KEY environment variable is required');
+    }
+    
+    this.genAI = new GoogleGenAI({ apiKey });
+    this.model = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
   }
 
   async generateRecipes(request: RecipeRequest): Promise<Recipe[]> {
     try {
       const prompt = this.buildRecipePrompt(request);
-      const response = await this.callOllama(prompt);
+      const response = await this.callGemini(prompt);
       return this.parseRecipeResponse(response);
     } catch (error) {
       console.error('Error generating recipes:', error);
@@ -64,18 +64,13 @@ Only return the JSON array, no additional text.`;
     return prompt;
   }
 
-  private async callOllama(prompt: string): Promise<string> {
-    const response = await axios.post(`${this.baseUrl}/api/generate`, {
+  private async callGemini(prompt: string): Promise<string> {
+    const response = await this.genAI.models.generateContent({
       model: this.model,
-      prompt,
-      stream: false,
-      options: {
-        temperature: 0.7,
-        top_p: 0.9,
-      }
+      contents: prompt
     });
 
-    return response.data.response;
+    return response.text || '';
   }
 
   private parseRecipeResponse(response: string): Recipe[] {
@@ -104,9 +99,13 @@ Only return the JSON array, no additional text.`;
 
   async checkHealth(): Promise<boolean> {
     try {
-      const response = await axios.get(`${this.baseUrl}/api/version`);
-      return response.status === 200;
+      await this.genAI.models.generateContent({
+        model: this.model,
+        contents: "Hello"
+      });
+      return true;
     } catch (error) {
+      console.error('Gemini health check failed:', error);
       return false;
     }
   }
