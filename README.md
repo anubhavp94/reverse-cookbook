@@ -1,16 +1,20 @@
 # 🍳 Reverse Cookbook
 
-A modern web application that suggests recipes based on your available ingredients and preferred cuisine type, powered by open-source AI models.
+A modern web application that suggests recipes based on your available ingredients and preferred cuisine type, powered by Google Gemini AI.
+
+> ⚡ **Lightning Fast**: Get recipe suggestions in 1-3 seconds (vs 20-60 seconds with local models)  
+> 🚀 **No Setup Hassles**: No large model downloads or GPU requirements  
+> 🆓 **Free Tier**: 1,500 requests/day with Google Gemini's generous free tier
 
 ## ✨ Features
 
 - **Ingredient-Based Recipe Generation**: Input your available ingredients and get personalized recipe recommendations
 - **Cuisine Selection**: Choose from 12+ international cuisines for tailored suggestions
-- **AI-Powered**: Uses Ollama with Llama 3.1 for intelligent recipe generation
+- **AI-Powered**: Uses Google Gemini API for fast, intelligent recipe generation
 - **Recipe Storage**: SQLite database with caching for improved performance
 - **Modern UI**: Clean, responsive interface built with React and Tailwind CSS
 - **Modular Architecture**: Easily extensible and maintainable codebase
-- **Docker Support**: One-command deployment with Docker Compose
+- **Flexible Deployment**: Run locally without Docker or use Docker for production
 
 ## 🏗️ Architecture
 
@@ -26,68 +30,79 @@ reverse-cookbook/
 
 - **Frontend**: React 18, TypeScript, Tailwind CSS, Headless UI
 - **Backend**: Node.js, Express, TypeScript, SQLite
-- **AI**: Ollama (Llama 3.1 8B model)
-- **Deployment**: Docker & Docker Compose
+- **AI**: Google Gemini API (Gemini 1.5 Flash model)
+- **Deployment**: Local development (recommended) or Docker
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- **Docker & Docker Compose** (recommended)
-- OR **Node.js 18+** and **npm 9+** for local development
+- **Node.js 18+** and **npm 9+**
+- **Google Gemini API Key** (free from [Google AI Studio](https://aistudio.google.com))
+- **Docker & Docker Compose** (optional for production deployment)
 
-### Option 1: Docker Deployment (Recommended)
+### Option 1: Local Development (Recommended)
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/anubhavp94/reverse-cookbook.git
    cd reverse-cookbook
    ```
 
-2. **Start all services**
+2. **Get Google Gemini API Key**
+   - Visit [Google AI Studio](https://aistudio.google.com)
+   - Sign in with your Google account
+   - Click "Get API key" in the left sidebar
+   - Copy your API key
+
+3. **Set up environment variables**
    ```bash
-   docker-compose up -d
+   # Create backend .env file
+   cp backend/.env.example backend/.env
+   
+   # Edit backend/.env and add your API key:
+   # GEMINI_API_KEY=your_actual_api_key_here
    ```
 
-3. **Wait for model download** (first run only)
+4. **Install dependencies and start services**
    ```bash
-   docker-compose logs -f ollama-setup
+   # Backend (Terminal 1)
+   cd backend
+   npm install
+   npm run dev
+   
+   # Frontend (Terminal 2)
+   cd frontend
+   npm install
+   npm start
+   ```
+
+5. **Access the application**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:3001
+
+### Option 2: Docker Deployment
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/anubhavp94/reverse-cookbook.git
+   cd reverse-cookbook
+   ```
+
+2. **Set up environment variables**
+   ```bash
+   # Create root .env file for Docker Compose
+   echo "GEMINI_API_KEY=your_actual_api_key_here" > .env
+   ```
+
+3. **Start all services**
+   ```bash
+   docker-compose up -d
    ```
 
 4. **Access the application**
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:3001
-   - Ollama: http://localhost:11434
-
-### Option 2: Local Development
-
-1. **Clone and install dependencies**
-   ```bash
-   git clone <repository-url>
-   cd reverse-cookbook
-   npm install
-   ```
-
-2. **Set up Ollama locally**
-   ```bash
-   # Install Ollama (visit https://ollama.ai for instructions)
-   ollama pull llama3.1:8b
-   ollama serve
-   ```
-
-3. **Configure environment**
-   ```bash
-   # Backend
-   cp backend/.env.example backend/.env
-   
-   # Frontend
-   echo "REACT_APP_API_URL=http://localhost:3001/api" > frontend/.env
-   ```
-
-4. **Start development servers**
-   ```bash
-   npm run dev
-   ```
 
 ## 📖 Usage
 
@@ -155,14 +170,20 @@ npm test                 # Run all tests
 ```env
 NODE_ENV=development
 PORT=3001
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_MODEL=llama3.1:8b
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_MODEL=gemini-1.5-flash
 DB_PATH=./recipes.db
+API_RATE_LIMIT=100
 ```
 
 #### Frontend (.env)
 ```env
 REACT_APP_API_URL=http://localhost:3001/api
+```
+
+#### Docker Compose (.env)
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 ### Customization
@@ -179,27 +200,24 @@ REACT_APP_API_URL=http://localhost:3001/api
 
 ### Services
 
-- **ollama**: AI model inference server
-- **backend**: Express API server
+- **backend**: Express API server with Gemini integration
 - **frontend**: React app served by Nginx
-- **ollama-setup**: One-time model download
 
 ### Volumes
 
-- `ollama_data`: Persistent storage for AI models
-- `backend_data`: SQLite database and uploads
+- `backend_data`: SQLite database and application data
 
 ## 🔧 Troubleshooting
 
 ### Common Issues
 
-**Ollama Connection Failed**
+**Recipe Generation Failing**
 ```bash
-# Check if Ollama is running
-curl http://localhost:11434/api/version
+# Check if backend is running
+curl http://localhost:3001/health
 
-# Restart Ollama service
-docker-compose restart ollama
+# Verify API key is valid
+# Error: "API key not valid" means you need to get a new key from Google AI Studio
 ```
 
 **Frontend Can't Connect to Backend**
@@ -207,21 +225,25 @@ docker-compose restart ollama
 # Check backend health
 curl http://localhost:3001/health
 
-# Verify environment variables
-docker-compose exec frontend env | grep REACT_APP
+# Verify environment variables (local development)
+cat backend/.env | grep GEMINI_API_KEY
 ```
 
-**Model Not Found**
+**Environment Variables Not Loading**
 ```bash
-# Re-download the model
-docker-compose run --rm ollama-setup
+# Ensure .env file exists in backend directory
+ls -la backend/.env
+
+# For Docker, ensure root .env file exists
+ls -la .env
 ```
 
 ### Performance Tips
 
-- First recipe generation takes longer due to model initialization
-- Subsequent requests are cached for better performance
-- Consider using smaller models (e.g., `llama3.1:3b`) for faster inference on limited hardware
+- Recipe generation: **1-3 seconds** with Gemini API (vs 20-60 seconds with local models)
+- Cached recipes: **<1 second** response
+- No model downloads or GPU requirements
+- **Gemini Free Tier**: 15 requests/minute, 1M tokens/minute, 1,500 requests/day
 
 ## 🤝 Contributing
 
@@ -237,7 +259,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- [Ollama](https://ollama.ai) for local AI model inference
-- [Llama 3.1](https://llama.meta.com/) for the language model
+- [Google Gemini](https://ai.google.dev) for fast, cloud-based AI inference
 - [Tailwind CSS](https://tailwindcss.com) for styling
 - [Headless UI](https://headlessui.com) for accessible components
+- [React](https://react.dev) for the frontend framework
