@@ -1,0 +1,19 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+README.md
+.env
+.nyc_output
+coverage
+.DS_Store
+*.log
+
+# Build outputs
+frontend/build
+backend/dist
+shared/dist
+
+# Development files
+.vscode
+.idea
