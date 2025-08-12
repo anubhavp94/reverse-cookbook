@@ -108,6 +108,7 @@ function App() {
             recipe={recipe}
             loading={loading}
             onNextRecipe={handleNextRecipe}
+            userSelectedIngredients={selectedIngredients}
           />
         </div>
       </main>

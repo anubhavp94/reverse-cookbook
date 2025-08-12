@@ -5,6 +5,8 @@ import {
   RecipeResponse, 
   Ingredient, 
   IngredientCategory,
+  IngredientAlternativesRequest,
+  IngredientAlternativesResponse,
   ApiResponse 
 } from '@reverse-cookbook/shared';
 
@@ -47,6 +49,11 @@ export const recipeAPI = {
     const response = await api.get<ApiResponse<RecipeResponse>>('/recipes/favorites', {
       params: { userId }
     });
+    return response.data.data!;
+  },
+
+  getIngredientAlternatives: async (request: IngredientAlternativesRequest): Promise<IngredientAlternativesResponse> => {
+    const response = await api.post<ApiResponse<IngredientAlternativesResponse>>('/recipes/ingredient-alternatives', request);
     return response.data.data!;
   }
 };

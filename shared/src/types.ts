@@ -56,3 +56,20 @@ export interface IngredientCategory {
   name: string;
   ingredients: Ingredient[];
 }
+
+export interface IngredientAlternative {
+  name: string;
+  explanation: string;
+}
+
+export interface IngredientAlternativesResponse {
+  ingredient: string;
+  isOptional: boolean;
+  alternatives: IngredientAlternative[];
+}
+
+export interface IngredientAlternativesRequest {
+  ingredient: string;
+  recipeTitle: string;
+  cuisine: string;
+}

@@ -1,44 +1,91 @@
 import React, { useState } from 'react';
-import { 
-  ClockIcon, 
-  UserGroupIcon, 
-  AcademicCapIcon,
-  TagIcon,
-  ArrowRightIcon
-} from '@heroicons/react/24/outline';
+import { ArrowRightIcon } from '@heroicons/react/24/outline';
 import { Recipe } from '@reverse-cookbook/shared';
-import { RecipeModal } from './RecipeModal';
+import { IngredientAlternativesModal } from './IngredientAlternativesModal';
+import { IngredientAvailabilityList } from './IngredientAvailabilityList';
+import { RecipeInstructionsPanel } from './RecipeInstructionsPanel';
+import { useIngredientAlternatives } from '../hooks/useIngredientAlternatives';
+import { useIngredientAvailability, IngredientStatus } from '../hooks/useIngredientAvailability';
 
 interface SingleRecipeViewProps {
   recipe: Recipe | null;
   loading?: boolean;
   onNextRecipe?: () => void;
+  userSelectedIngredients: string[];
   className?: string;
 }
-
-const difficultyColors = {
-  easy: 'bg-green-100 text-green-800',
-  medium: 'bg-yellow-100 text-yellow-800',
-  hard: 'bg-red-100 text-red-800'
-};
 
 export const SingleRecipeView: React.FC<SingleRecipeViewProps> = ({
   recipe,
   loading = false,
   onNextRecipe,
+  userSelectedIngredients,
   className = ''
 }) => {
-  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAlternativesModalOpen, setIsAlternativesModalOpen] = useState(false);
+  const [, setCurrentIngredientForAlternatives] = useState<string>('');
+  
 
-  const handleRecipeClick = (recipe: Recipe) => {
-    setSelectedRecipe(recipe);
-    setIsModalOpen(true);
+  const { 
+    alternatives, 
+    loading: alternativesLoading, 
+    getIngredientAlternatives,
+    clearAlternatives
+  } = useIngredientAlternatives();
+
+  const {
+    ingredientsList,
+    setIngredientStatus,
+    substituteIngredient,
+  } = useIngredientAvailability({
+    recipeIngredients: recipe?.ingredients || [],
+    userSelectedIngredients
+  });
+
+  // Debug logging for ingredient status
+  console.log('SingleRecipeView - Ingredient Status Debug:', {
+    hasRecipe: !!recipe,
+    recipeIngredients: recipe?.ingredients,
+    userSelectedIngredients,
+    ingredientsList: ingredientsList.map(item => ({
+      ingredient: item.ingredient,
+      status: item.status,
+      isUserSelected: item.isUserSelected
+    }))
+  });
+
+  const handleIngredientStatusChange = (ingredient: string, status: IngredientStatus) => {
+    setIngredientStatus(ingredient, status);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedRecipe(null);
+  const handleRequestAlternatives = async (ingredient: string) => {
+    if (!recipe) return;
+    
+    setCurrentIngredientForAlternatives(ingredient);
+    
+    try {
+      await getIngredientAlternatives({
+        ingredient,
+        recipeTitle: recipe.title,
+        cuisine: recipe.cuisine
+      });
+      setIsAlternativesModalOpen(true);
+    } catch (error) {
+      console.error('Error getting ingredient alternatives:', error);
+    }
+  };
+
+  const handleSelectSubstitute = (originalIngredient: string, substitute: string) => {
+    substituteIngredient(originalIngredient, substitute);
+    setIsAlternativesModalOpen(false);
+    clearAlternatives();
+    setCurrentIngredientForAlternatives('');
+  };
+
+  const handleCloseAlternativesModal = () => {
+    setIsAlternativesModalOpen(false);
+    clearAlternatives();
+    setCurrentIngredientForAlternatives('');
   };
 
   if (loading) {
@@ -82,151 +129,52 @@ export const SingleRecipeView: React.FC<SingleRecipeViewProps> = ({
 
   return (
     <>
-      <div className={`max-w-2xl mx-auto ${className}`}>
-        {/* Recipe Card */}
-        <div
-          className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer"
-          onClick={() => handleRecipeClick(recipe)}
-        >
-          <div className="p-8">
-            {/* Header */}
-            <div className="flex justify-between items-start mb-4">
-              <h3 className="text-2xl font-bold text-gray-900 line-clamp-2">
-                {recipe.title}
-              </h3>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${difficultyColors[recipe.difficulty]}`}>
-                {recipe.difficulty}
-              </span>
-            </div>
-
-            {/* Cuisine and Description */}
-            <div className="mb-6">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800 mb-3">
-                <TagIcon className="w-4 h-4 mr-1" />
-                {recipe.cuisine}
-              </span>
-              {recipe.description && (
-                <p className="text-gray-600 text-base leading-relaxed">
-                  {recipe.description}
-                </p>
-              )}
-            </div>
-
-            {/* Recipe Stats */}
-            <div className="flex items-center gap-6 mb-6 text-gray-500">
-              <div className="flex items-center gap-2">
-                <ClockIcon className="w-5 h-5" />
-                <span className="font-medium">{recipe.cookingTime} min</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <UserGroupIcon className="w-5 h-5" />
-                <span className="font-medium">{recipe.servings} servings</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <AcademicCapIcon className="w-5 h-5" />
-                <span className="font-medium capitalize">{recipe.difficulty}</span>
-              </div>
-            </div>
-
-            {/* Ingredients Preview */}
-            <div className="mb-6">
-              <h4 className="text-lg font-semibold text-gray-800 mb-3">
-                Ingredients ({recipe.ingredients.length})
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {recipe.ingredients.slice(0, 6).map((ingredient, index) => (
-                  <span
-                    key={index}
-                    className="inline-block px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full"
-                  >
-                    {ingredient}
-                  </span>
-                ))}
-                {recipe.ingredients.length > 6 && (
-                  <span className="inline-block px-3 py-1 bg-gray-100 text-gray-500 text-sm rounded-full">
-                    +{recipe.ingredients.length - 6} more
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Instructions Preview */}
-            <div className="mb-6">
-              <h4 className="text-lg font-semibold text-gray-800 mb-3">
-                Instructions
-              </h4>
-              <div className="text-gray-600">
-                {recipe.instructions.slice(0, 2).map((instruction, index) => (
-                  <p key={index} className="mb-2">
-                    <span className="font-medium text-primary-600">{index + 1}.</span> {instruction}
-                  </p>
-                ))}
-                {recipe.instructions.length > 2 && (
-                  <p className="text-gray-500 italic">
-                    +{recipe.instructions.length - 2} more steps... (click to view all)
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Tags */}
-            {recipe.tags && recipe.tags.length > 0 && (
-              <div className="mb-6">
-                <div className="flex flex-wrap gap-2">
-                  {recipe.tags.slice(0, 4).map((tag, index) => (
-                    <span
-                      key={index}
-                      className="inline-block px-3 py-1 bg-gray-50 text-gray-600 text-sm rounded-full"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
-                  {recipe.tags.length > 4 && (
-                    <span className="inline-block px-3 py-1 bg-gray-50 text-gray-500 text-sm rounded-full">
-                      +{recipe.tags.length - 4} more
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Click to view full recipe hint */}
-            <div className="text-center pt-4 border-t border-gray-100">
-              <p className="text-sm text-gray-500">
-                Click anywhere on this card to view the complete recipe
-              </p>
-            </div>
-          </div>
+      {/* Two-Column Layout */}
+      <div className={`grid grid-cols-1 lg:grid-cols-2 gap-8 ${className}`}>
+        {/* Left Column - Ingredients */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <IngredientAvailabilityList
+            ingredients={ingredientsList}
+            onStatusChange={handleIngredientStatusChange}
+            onRequestAlternatives={handleRequestAlternatives}
+          />
         </div>
 
-        {/* Next Recipe Button */}
-        {onNextRecipe && (
-          <div className="mt-6 text-center">
-            <button
-              onClick={onNextRecipe}
-              disabled={loading}
-              className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-base font-medium"
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Generating...
-                </>
-              ) : (
-                <>
-                  Next Recipe
-                  <ArrowRightIcon className="w-5 h-5 ml-2" />
-                </>
-              )}
-            </button>
-          </div>
-        )}
+        {/* Right Column - Instructions */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <RecipeInstructionsPanel recipe={recipe} />
+        </div>
       </div>
 
-      <RecipeModal
-        recipe={selectedRecipe}
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
+      {/* Next Recipe Button */}
+      {onNextRecipe && (
+        <div className="mt-6 text-center">
+          <button
+            onClick={onNextRecipe}
+            disabled={loading}
+            className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-base font-medium"
+          >
+            {loading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Generating...
+              </>
+            ) : (
+              <>
+                Next Recipe
+                <ArrowRightIcon className="w-5 h-5 ml-2" />
+              </>
+            )}
+          </button>
+        </div>
+      )}
+
+      <IngredientAlternativesModal
+        alternatives={alternatives}
+        isOpen={isAlternativesModalOpen}
+        loading={alternativesLoading}
+        onClose={handleCloseAlternativesModal}
+        onSelectSubstitute={handleSelectSubstitute}
       />
     </>
   );

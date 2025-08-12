@@ -24,7 +24,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 reverse-cookbook/
 ├── frontend/              # React frontend application
 │   ├── src/
-│   │   ├── components/    # UI components (selectors, cards, modals)
+│   │   ├── components/    # UI components (IngredientSelector, CuisineSelector, SingleRecipeView)
 │   │   ├── hooks/         # Custom React hooks (useIngredients, useRecipes)
 │   │   ├── services/      # API communication layer
 │   │   └── utils/         # Frontend utilities
@@ -76,7 +76,7 @@ cd frontend && npm start    # Frontend development
 - `GET /api/ingredients/:id` - Get specific ingredient
 
 ### Recipes
-- `POST /api/recipes/generate` - Generate AI recipes from ingredients
+- `POST /api/recipes/generate` - Generate single AI recipe from ingredients
 - `GET /api/recipes/search?q=query&cuisine=type` - Search existing recipes
 - `GET /api/recipes/:id` - Get specific recipe
 - `GET /api/recipes/favorites` - Get favorite recipes
@@ -115,11 +115,12 @@ REACT_APP_API_URL=http://localhost:3001/api
 
 1. **Ingredient Selector**: Multi-select component with search (34+ ingredients)
 2. **Cuisine Selection**: Dropdown with 12+ international cuisines
-3. **AI Recipe Generation**: Google Gemini API integration for fast recipe creation
-4. **Recipe Display**: Modal with ingredients, instructions, cooking time
-5. **Database Caching**: SQLite with intelligent recipe caching
-6. **Responsive Design**: Mobile-first Tailwind CSS implementation
-7. **Type Safety**: Full TypeScript coverage across all packages
+3. **Single Recipe UX**: Generate one recipe at a time with "Next Recipe" functionality
+4. **AI Recipe Generation**: Google Gemini API integration for fast recipe creation
+5. **Enhanced Recipe Display**: Large card view with preview and modal for full details
+6. **Database Caching**: SQLite with intelligent recipe caching
+7. **Responsive Design**: Mobile-first Tailwind CSS implementation
+8. **Type Safety**: Full TypeScript coverage across all packages
 
 ## Architecture Patterns
 
@@ -137,7 +138,7 @@ curl http://localhost:3001/health                    # Health check
 curl http://localhost:3001/api/ingredients           # Get ingredients
 curl -X POST http://localhost:3001/api/recipes/generate \
   -H "Content-Type: application/json" \
-  -d '{"ingredients":["chicken","garlic"],"cuisine":"Italian"}'
+  -d '{"ingredients":["chicken","garlic"],"cuisine":"Italian"}'  # Returns single recipe
 ```
 
 ### Service URLs
@@ -168,6 +169,8 @@ curl -X POST http://localhost:3001/api/recipes/generate \
 - Implement proper loading states and error boundaries
 - Use Tailwind utility classes for consistent styling
 - Follow RESTful API conventions for new endpoints
+- Single recipe state management with `useRecipes` hook
+- Component composition with `SingleRecipeView` for enhanced UX
 
 ## Deployment
 
