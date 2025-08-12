@@ -1,4 +1,4 @@
-import { Recipe, RecipeRequest, RecipeResponse } from '@reverse-cookbook/shared';
+import { Recipe, RecipeRequest, RecipeResponse, IngredientAlternativesRequest, IngredientAlternativesResponse } from '@reverse-cookbook/shared';
 import { AIService } from './aiService';
 import { DatabaseService } from './databaseService';
 
@@ -53,5 +53,14 @@ export class RecipeService {
 
   async getFavoriteRecipes(userId?: string): Promise<Recipe[]> {
     return await this.dbService.getFavoriteRecipes(userId);
+  }
+
+  async getIngredientAlternatives(request: IngredientAlternativesRequest): Promise<IngredientAlternativesResponse> {
+    try {
+      return await this.aiService.getIngredientAlternatives(request);
+    } catch (error) {
+      console.error('Error getting ingredient alternatives:', error);
+      throw error;
+    }
   }
 }

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { RecipeService } from '../services/recipeService';
-import { RecipeRequest, ApiResponse } from '@reverse-cookbook/shared';
+import { RecipeRequest, ApiResponse, IngredientAlternativesRequest } from '@reverse-cookbook/shared';
 import { z } from 'zod';
 
 const RecipeRequestSchema = z.object({
@@ -11,6 +11,12 @@ const RecipeRequestSchema = z.object({
     maxCookingTime: z.number().positive().optional(),
     servings: z.number().positive().optional(),
   }).optional()
+});
+
+const IngredientAlternativesRequestSchema = z.object({
+  ingredient: z.string().min(1, 'Ingredient name is required'),
+  recipeTitle: z.string().min(1, 'Recipe title is required'),
+  cuisine: z.string().min(1, 'Cuisine is required')
 });
 
 export class RecipeController {
@@ -115,6 +121,23 @@ export class RecipeController {
           recipes,
           totalCount: recipes.length
         }
+      };
+      
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getIngredientAlternatives = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const validatedRequest = IngredientAlternativesRequestSchema.parse(req.body);
+      
+      const result = await this.recipeService.getIngredientAlternatives(validatedRequest);
+      
+      const response: ApiResponse = {
+        success: true,
+        data: result
       };
       
       res.json(response);

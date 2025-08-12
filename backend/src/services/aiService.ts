@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import { Recipe, RecipeRequest } from '@reverse-cookbook/shared';
+import { Recipe, RecipeRequest, IngredientAlternativesRequest, IngredientAlternativesResponse } from '@reverse-cookbook/shared';
 
 export class AIService {
   private genAI: GoogleGenAI;
@@ -94,6 +94,60 @@ Only return the JSON array, no additional text.`;
       console.error('Error parsing recipe response:', error);
       console.error('Raw response:', response);
       throw new Error('Failed to parse recipe response');
+    }
+  }
+
+  async getIngredientAlternatives(request: IngredientAlternativesRequest): Promise<IngredientAlternativesResponse> {
+    try {
+      const prompt = this.buildIngredientAlternativesPrompt(request);
+      const response = await this.callGemini(prompt);
+      return this.parseIngredientAlternativesResponse(response, request.ingredient);
+    } catch (error) {
+      console.error('Error getting ingredient alternatives:', error);
+      throw new Error('Failed to get ingredient alternatives');
+    }
+  }
+
+  private buildIngredientAlternativesPrompt(request: IngredientAlternativesRequest): string {
+    const { ingredient, recipeTitle, cuisine } = request;
+    
+    return `For the ingredient "${ingredient}" in the "${recipeTitle}" (${cuisine} cuisine), provide:
+
+1. Is this ingredient optional in this recipe? (yes/no)
+2. If not optional, list 3-5 suitable alternatives with brief explanations of why they work as substitutes
+
+Return the response as a JSON object with this exact structure:
+{
+  "isOptional": boolean,
+  "alternatives": [
+    {
+      "name": "alternative ingredient name",
+      "explanation": "brief explanation of why this works as a substitute"
+    }
+  ]
+}
+
+If the ingredient is optional, you can return an empty alternatives array.
+Only return the JSON object, no additional text.`;
+  }
+
+  private parseIngredientAlternativesResponse(response: string, ingredient: string): IngredientAlternativesResponse {
+    try {
+      const cleanResponse = response.trim().replace(/```json\n?|\n?```/g, '');
+      const parsed = JSON.parse(cleanResponse);
+      
+      return {
+        ingredient,
+        isOptional: parsed.isOptional || false,
+        alternatives: Array.isArray(parsed.alternatives) ? parsed.alternatives.map((alt: any) => ({
+          name: alt.name || 'Unknown substitute',
+          explanation: alt.explanation || 'No explanation provided'
+        })) : []
+      };
+    } catch (error) {
+      console.error('Error parsing ingredient alternatives response:', error);
+      console.error('Raw response:', response);
+      throw new Error('Failed to parse ingredient alternatives response');
     }
   }
 
