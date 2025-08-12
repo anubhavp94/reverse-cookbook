@@ -3,11 +3,11 @@ import { Recipe, RecipeRequest, CuisineType } from '@reverse-cookbook/shared';
 import { recipeAPI } from '../services/api';
 
 export const useRecipes = () => {
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const generateRecipes = async (
+  const generateRecipe = async (
     ingredients: string[],
     cuisine: CuisineType,
     preferences?: RecipeRequest['preferences']
@@ -28,11 +28,12 @@ export const useRecipes = () => {
       };
 
       const response = await recipeAPI.generateRecipes(request);
-      setRecipes(response.recipes);
+      // Set the first (and only) recipe from the response
+      setRecipe(response.recipes[0] || null);
     } catch (err) {
-      console.error('Error generating recipes:', err);
-      setError('Failed to generate recipes. Please try again.');
-      setRecipes([]);
+      console.error('Error generating recipe:', err);
+      setError('Failed to generate recipe. Please try again.');
+      setRecipe(null);
     } finally {
       setLoading(false);
     }
@@ -44,27 +45,30 @@ export const useRecipes = () => {
       setError(null);
       
       const response = await recipeAPI.searchRecipes(query, cuisine);
-      setRecipes(response.recipes);
+      setRecipe(response.recipes[0] || null);
     } catch (err) {
       console.error('Error searching recipes:', err);
       setError('Failed to search recipes. Please try again.');
-      setRecipes([]);
+      setRecipe(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const clearRecipes = () => {
-    setRecipes([]);
+  const clearRecipe = () => {
+    setRecipe(null);
     setError(null);
   };
 
+  const generateNextRecipe = generateRecipe; // Alias for clarity
+
   return {
-    recipes,
+    recipe,
     loading,
     error,
-    generateRecipes,
+    generateRecipe,
+    generateNextRecipe,
     searchRecipes,
-    clearRecipes
+    clearRecipe
   };
 };

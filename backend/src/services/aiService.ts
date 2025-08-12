@@ -29,7 +29,7 @@ export class AIService {
   private buildRecipePrompt(request: RecipeRequest): string {
     const { ingredients, cuisine, preferences } = request;
     
-    let prompt = `Generate 3 ${cuisine} recipes using these ingredients: ${ingredients.join(', ')}.`;
+    let prompt = `Generate 1 ${cuisine} recipe using these ingredients: ${ingredients.join(', ')}.`;
     
     if (preferences?.difficulty) {
       prompt += ` Difficulty level: ${preferences.difficulty}.`;

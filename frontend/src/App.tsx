@@ -2,26 +2,34 @@ import React, { useState } from 'react';
 import { CuisineType } from '@reverse-cookbook/shared';
 import { IngredientSelector } from './components/IngredientSelector';
 import { CuisineSelector } from './components/CuisineSelector';
-import { RecipeGrid } from './components/RecipeGrid';
+import { SingleRecipeView } from './components/SingleRecipeView';
 import { useRecipes } from './hooks/useRecipes';
 
 function App() {
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
   const [selectedCuisine, setSelectedCuisine] = useState<CuisineType | ''>('');
-  const { recipes, loading, error, generateRecipes, clearRecipes } = useRecipes();
+  const { recipe, loading, error, generateRecipe, generateNextRecipe, clearRecipe } = useRecipes();
 
-  const handleGenerateRecipes = async () => {
+  const handleGenerateRecipe = async () => {
     if (selectedIngredients.length === 0 || !selectedCuisine) {
       return;
     }
 
-    await generateRecipes(selectedIngredients, selectedCuisine);
+    await generateRecipe(selectedIngredients, selectedCuisine);
+  };
+
+  const handleNextRecipe = async () => {
+    if (selectedIngredients.length === 0 || !selectedCuisine) {
+      return;
+    }
+
+    await generateNextRecipe(selectedIngredients, selectedCuisine);
   };
 
   const handleReset = () => {
     setSelectedIngredients([]);
     setSelectedCuisine('');
-    clearRecipes();
+    clearRecipe();
   };
 
   return (
@@ -60,11 +68,11 @@ function App() {
           {/* Action Buttons */}
           <div className="flex items-center gap-4">
             <button
-              onClick={handleGenerateRecipes}
+              onClick={handleGenerateRecipe}
               disabled={selectedIngredients.length === 0 || !selectedCuisine || loading}
               className="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {loading ? 'Generating...' : 'Generate Recipes'}
+              {loading ? 'Generating...' : 'Generate Recipe'}
             </button>
             
             <button
@@ -87,18 +95,19 @@ function App() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-gray-900">
-              Recipe Recommendations
+              Recipe Recommendation
             </h2>
-            {recipes.length > 0 && (
+            {recipe && (
               <span className="text-sm text-gray-500">
-                {recipes.length} recipe{recipes.length !== 1 ? 's' : ''} found
+                AI-generated recipe
               </span>
             )}
           </div>
 
-          <RecipeGrid
-            recipes={recipes}
+          <SingleRecipeView
+            recipe={recipe}
             loading={loading}
+            onNextRecipe={handleNextRecipe}
           />
         </div>
       </main>
