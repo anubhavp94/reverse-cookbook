@@ -14,7 +14,7 @@ A modern web application that suggests recipes based on your available ingredien
 - **Recipe Storage**: SQLite database with caching for improved performance
 - **Modern UI**: Clean, responsive interface built with React and Tailwind CSS
 - **Modular Architecture**: Easily extensible and maintainable codebase
-- **Flexible Deployment**: Run locally without Docker or use Docker for production
+- **Simple Deployment**: Easy local development setup
 
 ## 🏗️ Architecture
 
@@ -22,8 +22,7 @@ A modern web application that suggests recipes based on your available ingredien
 reverse-cookbook/
 ├── frontend/          # React.js + TypeScript + Tailwind CSS
 ├── backend/           # Node.js + Express API
-├── shared/            # Shared TypeScript types and utilities
-└── docker/            # Docker configuration files
+└── shared/            # Shared TypeScript types and utilities
 ```
 
 ### Tech Stack
@@ -31,7 +30,7 @@ reverse-cookbook/
 - **Frontend**: React 18, TypeScript, Tailwind CSS, Headless UI
 - **Backend**: Node.js, Express, TypeScript, SQLite
 - **AI**: Google Gemini API (Gemini 1.5 Flash model)
-- **Deployment**: Local development (recommended) or Docker
+- **Deployment**: Local development
 
 ## 🚀 Quick Start
 
@@ -39,9 +38,8 @@ reverse-cookbook/
 
 - **Node.js 18+** and **npm 9+**
 - **Google Gemini API Key** (free from [Google AI Studio](https://aistudio.google.com))
-- **Docker & Docker Compose** (optional for production deployment)
 
-### Option 1: Local Development (Recommended)
+### Setup
 
 1. **Clone the repository**
    ```bash
@@ -78,29 +76,6 @@ reverse-cookbook/
    ```
 
 5. **Access the application**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:3001
-
-### Option 2: Docker Deployment
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/anubhavp94/reverse-cookbook.git
-   cd reverse-cookbook
-   ```
-
-2. **Set up environment variables**
-   ```bash
-   # Create root .env file for Docker Compose
-   echo "GEMINI_API_KEY=your_actual_api_key_here" > .env
-   ```
-
-3. **Start all services**
-   ```bash
-   docker-compose up -d
-   ```
-
-4. **Access the application**
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:3001
 
@@ -181,10 +156,6 @@ API_RATE_LIMIT=100
 REACT_APP_API_URL=http://localhost:3001/api
 ```
 
-#### Docker Compose (.env)
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
-```
 
 ### Customization
 
@@ -196,16 +167,6 @@ GEMINI_API_KEY=your_gemini_api_key_here
 1. Update the ingredients array in `backend/src/services/ingredientService.ts`
 2. Or implement dynamic ingredient loading from an external API
 
-## 🐳 Docker Configuration
-
-### Services
-
-- **backend**: Express API server with Gemini integration
-- **frontend**: React app served by Nginx
-
-### Volumes
-
-- `backend_data`: SQLite database and application data
 
 ## 🔧 Troubleshooting
 
@@ -225,7 +186,7 @@ curl http://localhost:3001/health
 # Check backend health
 curl http://localhost:3001/health
 
-# Verify environment variables (local development)
+# Verify environment variables
 cat backend/.env | grep GEMINI_API_KEY
 ```
 
@@ -233,9 +194,6 @@ cat backend/.env | grep GEMINI_API_KEY
 ```bash
 # Ensure .env file exists in backend directory
 ls -la backend/.env
-
-# For Docker, ensure root .env file exists
-ls -la .env
 ```
 
 ### Performance Tips

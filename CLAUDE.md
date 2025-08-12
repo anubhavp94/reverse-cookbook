@@ -15,7 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Frontend**: React 18 + TypeScript + Tailwind CSS + Headless UI
 - **Backend**: Node.js + Express + TypeScript + SQLite
 - **AI**: Google Gemini API (Gemini 1.5 Flash model)
-- **Deployment**: Docker + Docker Compose (Optional - runs locally without Docker)
+- **Deployment**: Local development setup
 - **Architecture**: Monorepo with shared TypeScript types
 
 ## Project Structure
@@ -28,24 +28,20 @@ reverse-cookbook/
 │   │   ├── hooks/         # Custom React hooks (useIngredients, useRecipes)
 │   │   ├── services/      # API communication layer
 │   │   └── utils/         # Frontend utilities
-│   ├── Dockerfile         # Multi-stage build for production
-│   └── nginx.conf         # Production nginx configuration
 ├── backend/               # Express API server
 │   ├── src/
 │   │   ├── controllers/   # Route handlers (recipe, ingredient)
 │   │   ├── services/      # Business logic (AI, database, ingredients)
 │   │   ├── middleware/    # Error handling and validation
 │   │   └── routes/        # API route definitions
-│   ├── Dockerfile         # Backend containerization
 │   └── .env.example       # Environment configuration template
-├── shared/                # Shared TypeScript types and utilities
-│   └── src/types.ts       # Common interfaces and types
-└── docker-compose.yml     # Multi-service orchestration
+└── shared/                # Shared TypeScript types and utilities
+    └── src/types.ts       # Common interfaces and types
 ```
 
 ## Development Commands
 
-### Local Development (Recommended)
+### Local Development
 ```bash
 # Terminal 1 - Backend
 cd backend
@@ -56,14 +52,6 @@ npm run dev                 # Backend runs on http://localhost:3001
 cd frontend
 npm install
 npm start                   # Frontend runs on http://localhost:3000
-```
-
-### Docker (Optional)
-```bash
-docker-compose up -d        # Start all services
-docker-compose ps           # Check service status
-docker-compose logs -f      # View logs
-docker-compose down         # Stop all services
 ```
 
 ### Root Level Commands
@@ -115,10 +103,6 @@ API_RATE_LIMIT=100
 REACT_APP_API_URL=http://localhost:3001/api
 ```
 
-**Docker Compose (.env)**:
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
-```
 
 ### Gemini API Key Setup
 
@@ -143,7 +127,7 @@ GEMINI_API_KEY=your_gemini_api_key_here
 - **Shared Types**: Common interfaces prevent type mismatches
 - **Error Boundaries**: Proper error handling and user feedback
 - **Caching Strategy**: Ingredient-based recipe caching for performance
-- **Flexible Architecture**: Docker support optional, works locally without containers
+- **Simple Architecture**: Straightforward local development setup
 
 ## Testing & Validation
 
@@ -187,25 +171,15 @@ curl -X POST http://localhost:3001/api/recipes/generate \
 
 ## Deployment
 
-The application is production-ready with:
-- **Local Development**: Simple `npm run dev` setup, no Docker required
-- **Docker Support**: Optional containerization for production deployments
-- Multi-stage Docker builds for optimization
-- Nginx configuration for frontend serving
-- Health checks for all services
-- Persistent volumes for database storage
-- Security headers and CORS configuration
-- Cloud-based AI (no model hosting required)
+The application runs locally with:
+- **Simple Setup**: Just `npm run dev` for backend and `npm start` for frontend
+- **SQLite Database**: Local file-based database storage
+- **Environment Variables**: Simple .env file configuration
+- **Cloud-based AI**: No model hosting required (Google Gemini API)
 
-### Quick Start Options:
+### Quick Start:
 
-**Local (Recommended for Development):**
 ```bash
 # Backend: cd backend && npm run dev
 # Frontend: cd frontend && npm start
-```
-
-**Docker (Optional):**
-```bash
-docker-compose up -d
 ```
